@@ -35,6 +35,7 @@
     }
   },
   "scripts": {
+    "dev": "vite serve dev",
     "test": "echo \"test not setup\"",
     "build": "rollup -c",
     "prepublishOnly": "pnpm build",
@@ -52,7 +53,10 @@
     "rollup-preset-solid": "^1.4.0",
     "typescript": "^4.7.4",
     "solid-js": "^1.4.8",
-    "taze": "^0.7.6"
+    "taze": "^0.7.6",
+    "unocss": "^0.44.7",
+    "vite": "^3.0.4",
+    "vite-plugin-solid": "^2.3.0"
   },
   "keywords": [
     "solid"
