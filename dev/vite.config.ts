@@ -19,9 +19,6 @@ export default defineConfig({
       },
     }),
   ],
-  optimizeDeps: {
-    exclude: ["rallax"],
-  },
   build: {
     target: "esnext",
   },
