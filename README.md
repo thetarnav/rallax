@@ -1,40 +1,40 @@
 <p>
-  <img width="100%" src="https://assets.solidjs.com/banner?type={{name_of_lib}}&background=tiles&project=%20" alt="{{name_of_lib}}">
+  <img width="100%" src="https://assets.solidjs.com/banner?type=rallax&background=tiles&project=%20" alt="rallax">
 </p>
 
-# {{name_of_lib}}
+# rallax
 
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff.svg?style=for-the-badge&logo=pnpm)](https://pnpm.io/)
 
-{{desc_of_lib}}
+Parallax library for SolidJS
 
-> **Note** After using this template, you have to search and replace all `{{name_of_lib}}` and similar strings
+> **Note** After using this template, you have to search and replace all `rallax` and similar strings
 > with appropriate texts.
 >
-> `{{name_of_lib}}` should be a **kebab-case** string representing the name of you monorepo.
+> `rallax` should be a **kebab-case** string representing the name of you monorepo.
 >
-> `{{desc_of_lib}}` should be a **Normal case** string with the description of the repository.
+> `Parallax library for SolidJS` should be a **Normal case** string with the description of the repository.
 >
-> `{{me}}` should be a **kebab-case** string from your profile URL.
+> `thetarnav` should be a **kebab-case** string from your profile URL.
 
-# {{name_of_lib}}
+# rallax
 
-{{desc_of_lib}}
+Parallax library for SolidJS
 
 ## Quick start
 
 Install it:
 
 ```bash
-npm i {{me}}/{{name_of_lib}}
+npm i thetarnav/rallax
 # or
-yarn add {{me}}/{{name_of_lib}}
+yarn add thetarnav/rallax
 # or
-pnpm add {{me}}/{{name_of_lib}}
+pnpm add thetarnav/rallax
 ```
 
 Use it:
 
 ```tsx
-import {{name_of_lib}} from '{{name_of_lib}}'
+import rallax from 'rallax'
 ```
