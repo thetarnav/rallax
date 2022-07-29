@@ -8,33 +8,20 @@
 
 Parallax library for SolidJS
 
-> **Note** After using this template, you have to search and replace all `rallax` and similar strings
-> with appropriate texts.
->
-> `rallax` should be a **kebab-case** string representing the name of you monorepo.
->
-> `Parallax library for SolidJS` should be a **Normal case** string with the description of the repository.
->
-> `thetarnav` should be a **kebab-case** string from your profile URL.
-
-# rallax
-
-Parallax library for SolidJS
-
 ## Quick start
 
 Install it:
 
 ```bash
-npm i thetarnav/rallax
+npm i rallax
 # or
-yarn add thetarnav/rallax
+yarn add rallax
 # or
-pnpm add thetarnav/rallax
+pnpm add rallax
 ```
 
 Use it:
 
 ```tsx
-import rallax from 'rallax'
+import rallax from "rallax"
 ```
