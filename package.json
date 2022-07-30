@@ -19,25 +19,13 @@
   "files": [
     "dist"
   ],
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
-  "exports": {
-    ".": {
-      "solid": "./dist/source/index.jsx",
-      "import": "./dist/esm/index.js",
-      "browser": {
-        "import": "./dist/esm/index.js",
-        "require": "./dist/cjs/index.js"
-      },
-      "require": "./dist/cjs/index.js",
-      "node": "./dist/cjs/index.js"
-    }
-  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "vite serve dev",
     "test": "echo \"test not setup\"",
-    "build": "rollup -c",
+    "build": "tsup",
     "prepublishOnly": "pnpm build",
     "format": "prettier -w \"src/**/*.{js,ts,json,css,tsx,jsx}\" \"dev/**/*.{js,ts,json,css,tsx,jsx}\"",
     "update-deps": "taze -w && pnpm i",
@@ -58,6 +46,7 @@
     "rollup-preset-solid": "^1.4.0",
     "solid-js": "^1.4.8",
     "taze": "^0.7.6",
+    "tsup": "^6.2.1",
     "typescript": "^4.7.4",
     "unocss": "^0.44.7",
     "vite": "^3.0.4",
