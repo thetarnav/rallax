@@ -44,9 +44,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@solid-primitives/resize-observer": "^2.0.2",
     "@solid-primitives/scroll": "^2.0.2",
-    "@solid-primitives/utils": "^2.2.1",
-    "motion": "^10.13.1"
+    "@solid-primitives/utils": "^2.2.1"
   },
   "peerDependencies": {
     "solid-js": ">=1.0.0"
