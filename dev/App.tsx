@@ -1,5 +1,5 @@
 import { Component } from "solid-js"
-import { createParallax, Parallax } from "../src"
+import { createParallax, Parallax, BackgroundParallax, makeParallaxAnimation } from "../src"
 
 const App: Component = () => {
   return (
@@ -13,9 +13,7 @@ const App: Component = () => {
               <span
                 class="inline-block"
                 ref={(el) => {
-                  createParallax(el, -100, {
-                    centerToScreen: true,
-                  })
+                  createParallax(el, -100, makeParallaxAnimation, { centerToScreen: true })
                 }}
               >
                 <svg viewBox="0 0 24 24" class="w-12 inline rotate-30 -translate-y-4 translate-x-1">
@@ -34,7 +32,7 @@ const App: Component = () => {
           {/* <Parallax z={50} centerToScreen> */}
           <img
             ref={(el) => {
-              createParallax(el, 50, { centerToScreen: true })
+              createParallax(el, 50, makeParallaxAnimation, { centerToScreen: true })
             }}
             src="https://images.unsplash.com/photo-1536903978057-65e5fcece404?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1440&q=50"
             class="absolute inset-x-0 opacity-40"
@@ -55,12 +53,12 @@ const App: Component = () => {
                 molestiae fugiat saepe maiores expedita. Expedita impedit hic eos inventore.
               </p>
               <div class="relative aspect-video overflow-hidden">
-                <Parallax z={8}>
+                <BackgroundParallax z={8}>
                   <img
-                    class="absolute inset-x-0 -inset-y-16"
+                    class="absolute inset-0 h-full w-full object-cover"
                     src="https://images.unsplash.com/photo-1535957641083-17134361b629?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1440&q=50"
                   />
-                </Parallax>
+                </BackgroundParallax>
               </div>
               <p>
                 Tempore sunt consequatur deleniti ratione, placeat corporis nulla, blanditiis quam

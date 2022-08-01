@@ -1,8 +1,8 @@
-import { ParentComponent, onMount, children, createEffect, Accessor, createMemo } from "solid-js"
-import { warn, clamp, MaybeAccessor, access, FalsyValue } from "@solid-primitives/utils"
+import { onMount, children, createEffect, Accessor, onCleanup, JSX } from "solid-js"
+import { clamp, MaybeAccessor, access, FalsyValue } from "@solid-primitives/utils"
 import { useWindowScrollPosition } from "@solid-primitives/scroll"
 import { useWindowSize } from "@solid-primitives/resize-observer"
-import { mapRange, propAccessor } from "./utils"
+import { createSingleChild, mapRange, propAccessor } from "./utils"
 
 declare global {
   interface Element {
@@ -17,52 +17,100 @@ export interface ParallaxOptions {
 
 const ANIMATION_OPTIONS = { duration: 1000, iterations: Infinity } as const
 
+export function makeAnimation(
+  target: Element,
+  keyframes: MaybeAccessor<Keyframe[] | PropertyIndexedKeyframes | null>,
+): (currentTime: number) => void {
+  // stop the previous animation to read accurate rect value
+  target.$rallaxAnimation?.cancel()
+  const animation = target.animate(access(keyframes), ANIMATION_OPTIONS)
+  animation.pause()
+  animation.currentTime = 500
+  target.$rallaxAnimation = animation
+  let rafId: number | undefined
+  let currentTime: number
+  onCleanup(() => {
+    animation.cancel()
+    rafId && cancelAnimationFrame(rafId)
+  })
+  const frame = () => {
+    animation.currentTime = currentTime
+    rafId = undefined
+  }
+  return (time) => {
+    currentTime = time
+    if (rafId === undefined) rafId = requestAnimationFrame(frame)
+  }
+}
+
 export function makeParallaxAnimation(
   target: Element,
   z: number,
   options: ParallaxOptions = {},
 ): VoidFunction {
-  // stop the previous animation to read accurate rect value
-  target.$rallaxAnimation?.cancel()
-
   const { centerToScreen = false } = options
-
   const vh = window.innerHeight
   const sh = document.body.scrollHeight
-  const { top, height } = target.getBoundingClientRect()
 
-  /** y position of the elements center */
-  const center = centerToScreen ? vh / 2 : window.scrollY + top + height / 2
-  /** scroll distance in each directions from the element's center in which the parallax effect is applied */
-  const runway = Math.max(center, sh - center)
-  const from = center - runway
-  const to = center + runway
+  let from: number
+  let to: number
 
-  const translateDistance = (runway / vh) * 10 * z
+  const updateAnimation = makeAnimation(target, () => {
+    const { top, height } = target.getBoundingClientRect()
 
-  const a = target.animate(
-    [
+    /** y position of the elements center */
+    const center = centerToScreen ? vh / 2 : window.scrollY + top + height / 2
+    /** scroll distance in each directions from the element's center in which the parallax effect is applied */
+    const runway = Math.max(center, sh - center)
+
+    from = center - runway
+    to = center + runway
+
+    // TODO: "z" should mean something measurable
+    const translateDistance = (runway / vh) * 10 * z
+
+    return [
       { transform: `translateY(${-translateDistance}px)` },
       { transform: `translateY(${translateDistance}px)` },
-    ],
-    ANIMATION_OPTIONS,
-  )
-  a.pause()
-  a.currentTime = 500
+    ]
+  })
 
-  target.$rallaxAnimation = a
-
-  const loop = () => {
+  return () => {
     const current = window.scrollY + vh / 2
-    a.currentTime = clamp(mapRange(current, from, to, 0, 999), 0, 999)
+    // setting the time to 1000 will "finish" the animation, reseting the transform
+    updateAnimation(clamp(mapRange(current, from, to, 0, 999), 0, 999))
   }
+}
 
-  return () => requestAnimationFrame(loop)
+export function makeBackgroundParallaxAnimation(target: Element, z: number) {
+  const vh = window.innerHeight
+  let from: number
+  let to: number
+
+  const updateAnimation = makeAnimation(target, () => {
+    const { top: elTop, height: elH } = target.getBoundingClientRect()
+    from = window.scrollY + elTop - vh
+    to = from + elH + vh
+    const scale = 1.05 ** z
+    const distance = (elH * scale - elH) / 2
+
+    return [
+      { transform: `translateY(${-distance}px) scale(${scale})` },
+      { transform: `translateY(${distance}px) scale(${scale})` },
+    ]
+  })
+
+  return () => {
+    // setting the time to 1000 will "finish" the animation, reseting the transform
+    const progress = mapRange(window.scrollY, from, to, 0, 999)
+    if (progress <= 999 && progress >= 0) updateAnimation(progress)
+  }
 }
 
 export function createParallax(
   target: Accessor<Element | FalsyValue> | Element,
   z: MaybeAccessor<number>,
+  animationFactory: typeof makeParallaxAnimation | typeof makeBackgroundParallaxAnimation,
   options: ParallaxOptions = {},
 ) {
   // TODO: benchmark use of different triggers
@@ -73,7 +121,7 @@ export function createParallax(
     const targetEl = access(target)
     if (!targetEl) return
     size.width
-    const updateAnimation = makeParallaxAnimation(targetEl, access(z), options)
+    const updateAnimation = animationFactory(targetEl, access(z), options)
     createEffect(() => {
       scroll.y
       updateAnimation()
@@ -81,34 +129,35 @@ export function createParallax(
   })
 }
 
-export const Parallax: ParentComponent<
-  ParallaxOptions & {
+export function Parallax(
+  props: ParallaxOptions & {
     z: number
     omitDisplayContents?: boolean
-  }
-> = (props) => {
+    children: JSX.Element
+  },
+) {
   const { centerToScreen, omitDisplayContents } = props
   const resolved = children(() => props.children)
 
   onMount(() => {
-    const target = createMemo(() => {
-      let _ref = resolved()
-      let ref!: Element
+    const target = createSingleChild(resolved, { omitDisplayContents })
+    createParallax(target, propAccessor(props, "z"), makeParallaxAnimation, { centerToScreen })
+  })
 
-      if (omitDisplayContents)
-        while (_ref instanceof Element && !ref) {
-          if (getComputedStyle(_ref).display === "contents") _ref = _ref.firstChild
-          else ref = _ref
-        }
-      else if (_ref instanceof Element) ref = _ref
+  return resolved
+}
 
-      if (!ref) {
-        warn("Parallax children must be a single element")
-        return
-      }
-      return ref
-    })
-    createParallax(target, propAccessor(props, "z"), { centerToScreen })
+export function BackgroundParallax(props: {
+  z: number
+  children: JSX.Element
+  omitDisplayContents?: boolean
+}) {
+  const { omitDisplayContents } = props
+  const resolved = children(() => props.children)
+
+  onMount(() => {
+    const target = createSingleChild(resolved, { omitDisplayContents })
+    createParallax(target, propAccessor(props, "z"), makeBackgroundParallaxAnimation)
   })
 
   return resolved

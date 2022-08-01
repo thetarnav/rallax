@@ -1,4 +1,6 @@
 import { MaybeAccessor } from "@solid-primitives/utils"
+import { Accessor, createMemo } from "solid-js"
+import type { ResolvedChildren } from "solid-js/types/reactive/signal"
 
 export const mapRange = (
   value: number,
@@ -11,6 +13,7 @@ export const mapRange = (
 export const pToVal = (p: number, zero: number, hundred: number): number =>
   p * (hundred - zero) + zero
 
+// TODO: contribute to @solid-primitives/utils
 export function propAccessor<K extends string, Props extends { [Key in K]: unknown }>(
   object: Props,
   key: K,
@@ -18,6 +21,27 @@ export function propAccessor<K extends string, Props extends { [Key in K]: unkno
   const d = Object.getOwnPropertyDescriptor(object, key)
   if (!d) return object[key]
   return d.get ?? d.value
+}
+
+// TODO: contribute to @solid-primitives/refs
+export function createSingleChild(
+  resolved: Accessor<ResolvedChildren>,
+  options: { omitDisplayContents?: boolean } = {},
+): Accessor<Element | undefined> {
+  const { omitDisplayContents } = options
+  return createMemo(() => {
+    let _ref = resolved()
+    let ref!: Element
+
+    if (omitDisplayContents)
+      while (_ref instanceof Element && !ref) {
+        if (getComputedStyle(_ref).display === "contents") _ref = _ref.firstChild
+        else ref = _ref
+      }
+    else if (_ref instanceof Element) ref = _ref
+
+    return ref
+  })
 }
 
 // const randomColor = () => {
