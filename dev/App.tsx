@@ -1,5 +1,5 @@
 import { Component } from "solid-js"
-import { createParallax, Parallax } from "../src"
+import { createParallax, Parallax, BackgroundParallax } from "../src"
 
 const App: Component = () => {
   return (
@@ -55,12 +55,12 @@ const App: Component = () => {
                 molestiae fugiat saepe maiores expedita. Expedita impedit hic eos inventore.
               </p>
               <div class="relative aspect-video overflow-hidden">
-                <Parallax z={8}>
+                <BackgroundParallax z={8}>
                   <img
-                    class="absolute inset-x-0 -inset-y-16"
+                    class="absolute inset-0 h-full w-full object-cover"
                     src="https://images.unsplash.com/photo-1535957641083-17134361b629?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1440&q=50"
                   />
-                </Parallax>
+                </BackgroundParallax>
               </div>
               <p>
                 Tempore sunt consequatur deleniti ratione, placeat corporis nulla, blanditiis quam

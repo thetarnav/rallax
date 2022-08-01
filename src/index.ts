@@ -1,4 +1,4 @@
-import { ParentComponent, onMount, children, createEffect, Accessor, createMemo } from "solid-js"
+import { onMount, children, createEffect, Accessor, createMemo, onCleanup, JSX } from "solid-js"
 import { warn, clamp, MaybeAccessor, access, FalsyValue } from "@solid-primitives/utils"
 import { useWindowScrollPosition } from "@solid-primitives/scroll"
 import { useWindowSize } from "@solid-primitives/resize-observer"
@@ -38,6 +38,7 @@ export function makeParallaxAnimation(
   const from = center - runway
   const to = center + runway
 
+  // TODO: "z" should mean something measurable
   const translateDistance = (runway / vh) * 10 * z
 
   const a = target.animate(
@@ -54,10 +55,16 @@ export function makeParallaxAnimation(
 
   const loop = () => {
     const current = window.scrollY + vh / 2
+    // setting the time to 1000 will "finish" the animation, reseting the transform
     a.currentTime = clamp(mapRange(current, from, to, 0, 999), 0, 999)
   }
 
-  return () => requestAnimationFrame(loop)
+  let rafId: number | undefined
+  onCleanup(() => {
+    rafId && cancelAnimationFrame(rafId)
+    a.cancel()
+  })
+  return () => (rafId = requestAnimationFrame(loop))
 }
 
 export function createParallax(
@@ -81,12 +88,13 @@ export function createParallax(
   })
 }
 
-export const Parallax: ParentComponent<
-  ParallaxOptions & {
+export function Parallax(
+  props: ParallaxOptions & {
     z: number
     omitDisplayContents?: boolean
-  }
-> = (props) => {
+    children: JSX.Element
+  },
+) {
   const { centerToScreen, omitDisplayContents } = props
   const resolved = children(() => props.children)
 
@@ -109,6 +117,83 @@ export const Parallax: ParentComponent<
       return ref
     })
     createParallax(target, propAccessor(props, "z"), { centerToScreen })
+  })
+
+  return resolved
+}
+
+export function BackgroundParallax(props: {
+  z: number
+  children: JSX.Element
+  omitDisplayContents?: boolean
+}) {
+  const { omitDisplayContents } = props
+  const resolved = children(() => props.children)
+
+  onMount(() => {
+    const target = createMemo(() => {
+      let _ref = resolved()
+      let ref!: Element
+
+      if (omitDisplayContents)
+        while (_ref instanceof Element && !ref) {
+          if (getComputedStyle(_ref).display === "contents") _ref = _ref.firstChild
+          else ref = _ref
+        }
+      else if (_ref instanceof Element) ref = _ref
+
+      if (!ref) {
+        warn("Parallax children must be a single element")
+        return
+      }
+      return ref
+    })
+
+    const scroll = useWindowScrollPosition()
+
+    createEffect(() => {
+      const el = target()
+      if (!el) return
+
+      const { top: elTop, height: elH } = el.getBoundingClientRect()
+      const vh = window.innerHeight
+
+      // const runwayHeight = Math.min(elH + vh, sh - vh)
+      const runwayHeight = elH + vh
+      // const from = Math.max(window.scrollY + elTop - vh, 0)
+      const from = window.scrollY + elTop - vh
+      const to = from + runwayHeight
+      const scale = 1.05 ** props.z
+      const distance = (elH * scale - elH) / 2
+
+      const a = el.animate(
+        [
+          { transform: `translateY(${-distance}px) scale(${scale})` },
+          { transform: `translateY(${distance}px) scale(${scale})` },
+        ],
+        ANIMATION_OPTIONS,
+      )
+      a.pause()
+      a.currentTime = 500
+      el.$rallaxAnimation = a
+
+      let progress: number
+      let rafId: number | undefined
+
+      onCleanup(() => {
+        rafId && cancelAnimationFrame(rafId)
+        a.cancel()
+      })
+
+      const loop = () => (a.currentTime = progress)
+
+      createEffect(() => {
+        // setting the time to 1000 will "finish" the animation, reseting the transform
+        progress = mapRange(scroll.y, from, to, 0, 999)
+        if (progress > 999 || progress < 0) return
+        rafId = requestAnimationFrame(loop)
+      })
+    })
   })
 
   return resolved
